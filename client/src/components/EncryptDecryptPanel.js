@@ -70,7 +70,6 @@ const EncryptDecryptPanel = ({ config, setSimulationData }) => {
     finally { setIsLoading(false); }
   };
 
-  // FIX: Restored and Upgraded the Download Report Function!
   const downloadReport = () => {
     if (!result) return;
     
@@ -122,18 +121,20 @@ ${result.outputData}
 
   return (
     <div className="glass-panel">
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+      {/* Used the new button-group class here */}
+      <div className="button-group">
         <button className={action === 'encrypt' ? 'btn-primary' : 'btn-outline'} onClick={() => {setAction('encrypt'); setResult(null); setLongInput('');}}>Encrypt</button>
         <button className={action === 'decrypt' ? 'btn-primary' : 'btn-outline'} onClick={() => {setAction('decrypt'); setResult(null); setLongInput('');}}>Decrypt</button>
       </div>
 
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+      <div className="button-group">
         <button className={cipherMode === 'ECB' ? 'btn-outline' : 'btn-outline'} style={{borderColor: cipherMode === 'ECB' ? 'var(--accent-primary)' : ''}} onClick={() => {setCipherMode('ECB'); setResult(null);}}>ECB Mode (Visual)</button>
         <button className={cipherMode === 'CBC' ? 'btn-outline' : 'btn-outline'} style={{borderColor: cipherMode === 'CBC' ? 'var(--accent-primary)' : ''}} onClick={() => {setCipherMode('CBC'); setResult(null);}}>CBC Mode (Bulk Message)</button>
       </div>
 
       {cipherMode === 'ECB' ? (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+        /* Used the new input-grid class here */
+        <div className="input-grid">
           <div className="form-group"><label>{action === 'encrypt' ? 'Plaintext A' : 'Ciphertext A'} (Hex)</label><input type="text" className="input-field" value={inputA} onChange={handleHexInput(setInputA)} /></div>
           <div className="form-group"><label>{action === 'encrypt' ? 'Plaintext B' : 'Ciphertext B'} (Hex)</label><input type="text" className="input-field" value={inputB} onChange={handleHexInput(setInputB)} /></div>
         </div>
@@ -151,7 +152,8 @@ ${result.outputData}
       )}
 
       <div className="form-group">
-        <label style={{ display: 'flex', justifyContent: 'space-between' }}>
+        {/* Used the new key-label-row class here */}
+        <label className="key-label-row">
           Secret Key (Hex)
           <span style={{ cursor: 'pointer', color: 'var(--accent-primary)' }} onClick={handleGenerateKey}>⚡ Generate</span>
         </label>
@@ -167,7 +169,7 @@ ${result.outputData}
           <h3>✅ {cipherMode} {action === 'encrypt' ? 'Encryption' : 'Decryption'} Complete</h3>
           {result.isCBC ? (
             <div className="result-row">
-              <span className="result-label" style={{wordBreak: 'break-all'}}>
+              <span className="result-label">
                 {action === 'encrypt' ? 'Encrypted Hex: ' : 'Decrypted Message: '}<br/><br/>
                 <span style={{color: action === 'encrypt' ? 'var(--accent-primary)' : 'var(--success)', fontSize: '1.1rem'}}>{result.outputData}</span>
               </span>
@@ -180,7 +182,6 @@ ${result.outputData}
           )}
           <div className="result-row" style={{marginTop: '15px'}}><span className="result-label">Execution Time:</span><span className="result-value">{result.executionTimeMs} ms</span></div>
           
-          {/* FIX: Restored the Download Button UI! */}
           <button className="btn-outline" style={{ marginTop: '20px', width: '100%' }} onClick={downloadReport}>
             📄 Download Detailed Report
           </button>

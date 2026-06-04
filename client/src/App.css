@@ -230,3 +230,62 @@ button {
 .canvas-wrapper { width: 100%; overflow-x: auto; margin-bottom: 16px; }
 canvas { display: block; margin: 0 auto; max-width: 100%; height: auto; }
 .canvas-controls { display: flex; gap: 16px; justify-content: center; }
+/* =========================================
+   MOBILE RESPONSIVENESS & ALIGNMENT FIXES
+========================================= */
+
+/* Responsive Classes */
+.button-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.key-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Phone & Small Tablet Overrides */
+@media (max-width: 768px) {
+  /* Stack buttons vertically on phones */
+  .button-group {
+    flex-direction: column;
+  }
+  
+  /* Stack input blocks vertically instead of side-by-side */
+  .input-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Fix the clock overlapping the main title */
+  .app-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 30px;
+  }
+  
+  .india-clock {
+    position: static;
+    margin-bottom: 15px;
+  }
+  
+  /* Prevent long hex strings from breaking the layout */
+  .result-value, .result-label {
+    font-size: 0.85rem;
+    word-break: break-all;
+  }
+  
+  /* Reduce panel padding slightly to save screen space */
+  .glass-panel {
+    padding: 20px;
+  }
+}
