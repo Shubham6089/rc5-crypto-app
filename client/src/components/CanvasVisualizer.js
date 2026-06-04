@@ -119,9 +119,9 @@ const CanvasVisualizer = ({ simulationData }) => {
 
   if (!simulationData) return null;
 
-  return (
-    // Added boxSizing and maxWidth to prevent mobile stretching
-    <div className="glass-panel" style={{ marginTop: '25px', maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden' }}>
+ return (
+    // Removed overflow: hidden, added width: 100%
+    <div className="glass-panel" style={{ marginTop: '25px', width: '100%', boxSizing: 'border-box' }}>
       <div className="panel-header">
         <div className="panel-title">
            <span style={{ color: 'var(--text-muted)' }}>→</span> INTERNAL VISUALIZATION (ECB)
@@ -134,7 +134,7 @@ const CanvasVisualizer = ({ simulationData }) => {
           width: '100%', 
           overflowX: 'auto', 
           marginBottom: '20px',
-          WebkitOverflowScrolling: 'touch',
+          WebkitOverflowScrolling: 'touch', // Smooth swiping on iOS
           paddingBottom: '10px'
         }}
       >
@@ -142,22 +142,23 @@ const CanvasVisualizer = ({ simulationData }) => {
           ref={canvasRef} 
           width={800} 
           height={400} 
-          style={{ display: 'block', minWidth: '800px', margin: '0 auto', backgroundColor: 'transparent' }} 
+          style={{ display: 'block', width: '800px', minWidth: '800px', margin: '0 auto', backgroundColor: 'transparent' }} 
         />
       </div>
       
-      <div className="canvas-controls" style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
+      {/* Flex controls so buttons sit side-by-side taking 50% width each */}
+      <div className="canvas-controls" style={{ display: 'flex', gap: '15px', justifyContent: 'center', width: '100%' }}>
         <button 
-          style={{ background: 'transparent', color: 'var(--primary)', border: '1px solid var(--primary)', padding: '10px 20px', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', textTransform: 'uppercase' }} 
+          style={{ flex: 1, background: 'transparent', color: 'var(--primary)', border: '1px solid var(--primary)', padding: '12px 10px', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', textTransform: 'uppercase', fontSize: '0.85rem' }} 
           onClick={() => setStep(Math.max(-1, step - 1))}
         >
-          ◀ Previous Step
+          ◀ Prev
         </button>
         <button 
-          style={{ background: 'transparent', color: 'var(--primary)', border: '1px solid var(--primary)', padding: '10px 20px', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', textTransform: 'uppercase' }} 
+          style={{ flex: 1, background: 'transparent', color: 'var(--primary)', border: '1px solid var(--primary)', padding: '12px 10px', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', textTransform: 'uppercase', fontSize: '0.85rem' }} 
           onClick={() => setStep(Math.min(simulationData.rounds.length - 1, step + 1))}
         >
-          Next Step ▶
+          Next ▶
         </button>
       </div>
     </div>
