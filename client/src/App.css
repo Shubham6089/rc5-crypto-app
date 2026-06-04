@@ -1,31 +1,26 @@
 /* =========================================
-   RC5 CLEAN & MINIMALIST DESIGN SYSTEM
+   RC5 CYBER-DASHBOARD DESIGN SYSTEM
 ========================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
-  /* Sophisticated Palette */
-  --bg-body: #F8FAFC;         /* Soft off-white */
-  --bg-surface: #FFFFFF;      /* Crisp white for cards */
-  --text-main: #0F172A;       /* Deep navy for readability */
-  --text-muted: #64748B;      /* Slate gray for secondary text */
-  --border-light: #E2E8F0;    /* Clean borders */
+  /* Deep Cyber Palette */
+  --bg-body: #0d1219;         /* Very dark navy background */
+  --bg-surface: #1a222f;      /* Slightly lighter panel background */
+  --bg-surface-hover: #232d3d;
+  --text-main: #f8fafc;       /* Crisp white */
+  --text-muted: #94a3b8;      /* Slate grey for secondary text */
+  --border-light: #2d3748;    /* Subtle borders */
   
   /* Accents */
-  --primary: #334155;         /* Charcoal/Navy for primary actions */
-  --primary-hover: #1E293B;
-  --success: #059669;         /* Muted green for success states */
+  --primary: #3b82f6;         /* Bright cyber blue */
+  --primary-hover: #2563eb;
   
-  /* Depth & Radii */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  
-  /* Typography */
+  /* Typography & Layout */
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
+  --radius-md: 8px;
 }
 
 /* --- BASE STYLES --- */
@@ -35,68 +30,79 @@ body {
   background-color: var(--bg-body);
   color: var(--text-main);
   line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
 }
 
 .app-container {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 40px 20px;
 }
 
+/* --- HEADER & CLOCK --- */
 .app-header {
   text-align: center;
-  margin-bottom: 48px;
+  margin-bottom: 40px;
   position: relative;
 }
 
 .app-header h1 {
-  font-size: 2.25rem;
+  font-size: 2rem;
   font-weight: 700;
-  color: var(--text-main);
-  margin-bottom: 8px;
-  letter-spacing: -0.02em;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .app-header p {
   color: var(--text-muted);
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
-/* --- LAYOUT --- */
+.india-clock {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+/* --- THE SIDEBAR LAYOUT --- */
 .main-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 32px;
-  margin-bottom: 32px;
+  /* This creates the layout from your image: a 300px sidebar on the left, main content on the right */
+  grid-template-columns: 300px 1fr;
+  gap: 25px;
 }
 
-@media (min-width: 768px) {
-  .main-grid { grid-template-columns: 1fr 2fr; }
-}
-
-/* --- PANELS & CARDS --- */
-/* Replaces the old "glass-panel" with a clean white card */
+/* --- PANELS --- */
 .glass-panel {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
-  padding: 32px;
-  box-shadow: var(--shadow-sm);
-  transition: box-shadow 0.2s ease;
+  border-radius: var(--radius-md);
+  padding: 25px;
 }
 
-.glass-panel:hover {
-  box-shadow: var(--shadow-md);
-}
-
-.glass-panel h2 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-top: 0;
-  margin-bottom: 24px;
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
   border-bottom: 1px solid var(--border-light);
-  padding-bottom: 12px;
+  padding-bottom: 15px;
+}
+
+.panel-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 /* --- FORMS & INPUTS --- */
@@ -107,185 +113,132 @@ body {
 }
 
 label {
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 0.85rem;
   color: var(--text-main);
   margin-bottom: 8px;
 }
 
 .input-field {
-  background-color: var(--bg-surface);
+  background-color: var(--bg-body);
   border: 1px solid var(--border-light);
   color: var(--text-main);
-  padding: 12px 16px;
+  padding: 12px;
   border-radius: var(--radius-md);
   font-family: var(--font-mono);
-  font-size: 0.95rem;
   transition: all 0.2s ease;
-  box-shadow: var(--shadow-sm);
 }
 
 .input-field:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(51, 65, 85, 0.1); /* Soft focus ring */
 }
 
 /* --- BUTTONS --- */
-button {
-  cursor: pointer;
-  font-family: var(--font-sans);
-  font-weight: 500;
-  font-size: 0.95rem;
-  border-radius: var(--radius-md);
-  padding: 12px 20px;
-  transition: all 0.2s ease;
-  border: none;
-}
-
 .btn-primary {
-  background-color: var(--primary);
-  color: #FFFFFF;
+  background-color: #1e3a5f; /* Darker blue for the execute button */
+  color: var(--text-main);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-md);
+  padding: 15px 20px;
   width: 100%;
-  box-shadow: var(--shadow-sm);
+  font-weight: 600;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
 }
 
 .btn-primary:hover {
-  background-color: var(--primary-hover);
-  transform: translateY(-1px);
+  background-color: var(--primary);
 }
 
-.btn-primary:disabled {
-  background-color: var(--text-muted);
-  cursor: not-allowed;
-}
-
-.btn-outline {
-  background-color: transparent;
-  color: var(--text-main);
-  border: 1px solid var(--border-light);
-  width: 100%;
-}
-
-.btn-outline:hover {
-  background-color: var(--bg-body);
-  border-color: var(--text-muted);
-}
-
-/* --- RESULTS BOX --- */
-.results-box {
-  margin-top: 32px;
-  padding: 24px;
-  background-color: var(--bg-body); /* Slightly off-white to distinguish from the card */
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-}
-
-.results-box h3 {
-  margin-top: 0;
-  color: var(--success);
-  font-size: 1.1rem;
+/* --- CUSTOM TOGGLE SWITCHES (From the Image) --- */
+.toggle-container {
   display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.result-row {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 12px;
-}
-
-.result-label {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.result-value {
-  font-family: var(--font-mono);
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--text-main);
-  word-break: break-all;
-}
-
-/* --- CLOCK & MISC --- */
-.india-clock {
-  position: absolute;
-  top: 0;
-  right: 0;
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-light);
-  padding: 8px 16px;
-  border-radius: var(--radius-md);
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  color: var(--text-main);
-  box-shadow: var(--shadow-sm);
-}
-
-/* Responsive Canvas */
-.canvas-wrapper { width: 100%; overflow-x: auto; margin-bottom: 16px; }
-canvas { display: block; margin: 0 auto; max-width: 100%; height: auto; }
-.canvas-controls { display: flex; gap: 16px; justify-content: center; }
-/* =========================================
-   MOBILE RESPONSIVENESS & ALIGNMENT FIXES
-========================================= */
-
-/* Responsive Classes */
-.button-group {
-  display: flex;
   gap: 10px;
-  margin-bottom: 15px;
+  font-size: 0.85rem;
+  color: var(--primary);
+  text-transform: uppercase;
+  font-weight: 600;
 }
 
-.input-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
+.toggle-label {
+  cursor: pointer;
 }
 
-.key-label-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
 }
 
-/* Phone & Small Tablet Overrides */
-@media (max-width: 768px) {
-  /* Stack buttons vertically on phones */
-  .button-group {
-    flex-direction: column;
-  }
-  
-  /* Stack input blocks vertically instead of side-by-side */
-  .input-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  /* Fix the clock overlapping the main title */
-  .app-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 30px;
-  }
-  
-  .india-clock {
-    position: static;
-    margin-bottom: 15px;
-  }
-  
-  /* Prevent long hex strings from breaking the layout */
-  .result-value, .result-label {
-    font-size: 0.85rem;
-    word-break: break-all;
-  }
-  
-  /* Reduce panel padding slightly to save screen space */
-  .glass-panel {
-    padding: 20px;
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: var(--bg-body);
+  border: 1px solid var(--border-light);
+  transition: .4s;
+  border-radius: 24px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 2px;
+  bottom: 2px;
+  background-color: var(--text-muted);
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+  background-color: #fff;
+}
+
+/* --- TABLES --- */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+}
+
+.data-table th, .data-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.data-table th {
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-weight: 500;
+}
+
+.data-table tr.active {
+  background-color: rgba(59, 130, 246, 0.1); /* Soft blue highlight */
+  border-left: 3px solid var(--primary);
+}
+
+/* --- RESPONSIVE FIXES --- */
+@media (max-width: 900px) {
+  .main-grid {
+    grid-template-columns: 1fr; /* Stack sidebar on top for mobile */
   }
 }

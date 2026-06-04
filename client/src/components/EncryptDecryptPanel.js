@@ -62,7 +62,15 @@ const EncryptDecryptPanel = ({ config, setSimulationData }) => {
         const response = await axios.post(`${API_URL}${endpoint}`, payload);
         
         let finalOutputData = action === 'encrypt' ? response.data.ciphertext : hexToText(response.data.plaintext);
-        setResult({ isCBC: true, outputData: finalOutputData, executionTimeMs: response.data.executionTimeMs });
+        
+        // Pass a dummy sArray if CBC mode backend doesn't return one, just so the table doesn't crash 
+        // (Assuming your engine expands the key but maybe doesn't return it in CBC mode. If it does, ignore this comment!)
+        setResult({ 
+          isCBC: true, 
+          outputData: finalOutputData, 
+          executionTimeMs: response.data.executionTimeMs,
+          sArray: response.data.sArray || null 
+        });
         setSimulationData(null); 
         toast.success(`CBC Bulk ${action}ion Complete!`);
       }
@@ -72,43 +80,12 @@ const EncryptDecryptPanel = ({ config, setSimulationData }) => {
 
   const downloadReport = () => {
     if (!result) return;
-    
-    let reportContent = `=========================================
-      RC5-${config.w}/${config.r}/${config.b} CRYPTOGRAPHIC REPORT
-=========================================
-Mode: ${cipherMode} (${action.toUpperCase()})
-Execution Time: ${result.executionTimeMs} ms
-
---- CONFIGURATION ---
-Word Size (w): ${config.w} bits
-Rounds (r): ${config.r}
-Key Length (b): ${config.b} bytes
-Secret Key: ${keyHex}
-`;
+    let reportContent = `=========================================\n      RC5-${config.w}/${config.r}/${config.b} CRYPTOGRAPHIC REPORT\n=========================================\nMode: ${cipherMode} (${action.toUpperCase()})\nExecution Time: ${result.executionTimeMs} ms\n\n--- CONFIGURATION ---\nWord Size (w): ${config.w} bits\nRounds (r): ${config.r}\nKey Length (b): ${config.b} bytes\nSecret Key: ${keyHex}\n`;
 
     if (cipherMode === 'ECB') {
-      reportContent += `
---- INPUTS (HEX) ---
-Block A: ${inputA}
-Block B: ${inputB}
-
---- OUTPUTS (HEX) ---
-Block A: ${action === 'encrypt' ? result.ciphertextA : result.plaintextA}
-Block B: ${action === 'encrypt' ? result.ciphertextB : result.plaintextB}
-
---- EXPANDED SUBKEY ARRAY (S) ---
-${result.sArray.map((s, i) => `S[${i}]: ${s}`).join('\n')}
-`;
+      reportContent += `\n--- INPUTS (HEX) ---\nBlock A: ${inputA}\nBlock B: ${inputB}\n\n--- OUTPUTS (HEX) ---\nBlock A: ${action === 'encrypt' ? result.ciphertextA : result.plaintextA}\nBlock B: ${action === 'encrypt' ? result.ciphertextB : result.plaintextB}\n\n--- EXPANDED SUBKEY ARRAY (S) ---\n${result.sArray.map((s, i) => `S[${i}]: ${s}`).join('\n')}\n`;
     } else {
-      reportContent += `
-Initialization Vector (IV): ${ivHex}
-
---- INPUT ---
-${longInput}
-
---- OUTPUT ---
-${result.outputData}
-`;
+      reportContent += `\nInitialization Vector (IV): ${ivHex}\n\n--- INPUT ---\n${longInput}\n\n--- OUTPUT ---\n${result.outputData}\n`;
     }
     reportContent += `=========================================`;
 
@@ -120,74 +97,126 @@ ${result.outputData}
   };
 
   return (
-    <div className="glass-panel">
-      {/* Used the new button-group class here */}
-      <div className="button-group">
-        <button className={action === 'encrypt' ? 'btn-primary' : 'btn-outline'} onClick={() => {setAction('encrypt'); setResult(null); setLongInput('');}}>Encrypt</button>
-        <button className={action === 'decrypt' ? 'btn-primary' : 'btn-outline'} onClick={() => {setAction('decrypt'); setResult(null); setLongInput('');}}>Decrypt</button>
-      </div>
-
-      <div className="button-group">
-        <button className={cipherMode === 'ECB' ? 'btn-outline' : 'btn-outline'} style={{borderColor: cipherMode === 'ECB' ? 'var(--accent-primary)' : ''}} onClick={() => {setCipherMode('ECB'); setResult(null);}}>ECB Mode (Visual)</button>
-        <button className={cipherMode === 'CBC' ? 'btn-outline' : 'btn-outline'} style={{borderColor: cipherMode === 'CBC' ? 'var(--accent-primary)' : ''}} onClick={() => {setCipherMode('CBC'); setResult(null);}}>CBC Mode (Bulk Message)</button>
-      </div>
-
-      {cipherMode === 'ECB' ? (
-        /* Used the new input-grid class here */
-        <div className="input-grid">
-          <div className="form-group"><label>{action === 'encrypt' ? 'Plaintext A' : 'Ciphertext A'} (Hex)</label><input type="text" className="input-field" value={inputA} onChange={handleHexInput(setInputA)} /></div>
-          <div className="form-group"><label>{action === 'encrypt' ? 'Plaintext B' : 'Ciphertext B'} (Hex)</label><input type="text" className="input-field" value={inputB} onChange={handleHexInput(setInputB)} /></div>
-        </div>
-      ) : (
-        <>
-          <div className="form-group">
-            <label>{action === 'encrypt' ? 'Type your message (Standard Text)' : 'Paste your Ciphertext (Hex)'}</label>
-            <textarea className="input-field" rows="3" value={longInput} onChange={action === 'encrypt' ? handleTextInput(setLongInput) : handleHexInput(setLongInput)} />
+    <>
+      <div className="glass-panel">
+        
+        {/* HEADER ROW WITH TOGGLES */}
+        <div className="panel-header">
+          <div className="panel-title">
+            <span style={{ color: 'var(--text-muted)' }}>→</span> ENCRYPTION ENGINE
           </div>
-          <div className="form-group">
-            <label>Initialization Vector (IV - Hex)</label>
-            <input type="text" className="input-field" value={ivHex} onChange={handleHexInput(setIvHex)} />
-          </div>
-        </>
-      )}
-
-      <div className="form-group">
-        {/* Used the new key-label-row class here */}
-        <label className="key-label-row">
-          Secret Key (Hex)
-          <span style={{ cursor: 'pointer', color: 'var(--accent-primary)' }} onClick={handleGenerateKey}>⚡ Generate</span>
-        </label>
-        <input type="text" className="input-field" value={keyHex} onChange={handleHexInput(setKeyHex)} />
-      </div>
-
-      <button className="btn-primary" onClick={handleAction} disabled={isLoading}>
-        {isLoading ? '⏳ Processing...' : `Execute ${cipherMode} ${action === 'encrypt' ? 'Encryption' : 'Decryption'}`}
-      </button>
-
-      {result && (
-        <div className="results-box">
-          <h3>✅ {cipherMode} {action === 'encrypt' ? 'Encryption' : 'Decryption'} Complete</h3>
-          {result.isCBC ? (
-            <div className="result-row">
-              <span className="result-label">
-                {action === 'encrypt' ? 'Encrypted Hex: ' : 'Decrypted Message: '}<br/><br/>
-                <span style={{color: action === 'encrypt' ? 'var(--accent-primary)' : 'var(--success)', fontSize: '1.1rem'}}>{result.outputData}</span>
-              </span>
-            </div>
-          ) : (
-            <>
-              <div className="result-row"><span className="result-label">Result A:</span><span className="result-value">{action === 'encrypt' ? result.ciphertextA : result.plaintextA}</span></div>
-              <div className="result-row"><span className="result-label">Result B:</span><span className="result-value">{action === 'encrypt' ? result.ciphertextB : result.plaintextB}</span></div>
-            </>
-          )}
-          <div className="result-row" style={{marginTop: '15px'}}><span className="result-label">Execution Time:</span><span className="result-value">{result.executionTimeMs} ms</span></div>
           
-          <button className="btn-outline" style={{ marginTop: '20px', width: '100%' }} onClick={downloadReport}>
-            📄 Download Detailed Report
-          </button>
+          <div style={{ display: 'flex', gap: '25px', flexWrap: 'wrap' }}>
+            {/* Encrypt/Decrypt Toggle */}
+            <div className="toggle-container">
+              <span className="toggle-label" style={{ color: action === 'encrypt' ? 'var(--primary)' : 'var(--text-muted)' }} onClick={() => {setAction('encrypt'); setResult(null); setLongInput('');}}>Encrypt</span>
+              <label className="toggle-switch">
+                <input type="checkbox" checked={action === 'decrypt'} onChange={() => {setAction(action === 'encrypt' ? 'decrypt' : 'encrypt'); setResult(null); setLongInput('');}} />
+                <span className="slider"></span>
+              </label>
+              <span className="toggle-label" style={{ color: action === 'decrypt' ? 'var(--primary)' : 'var(--text-muted)' }} onClick={() => {setAction('decrypt'); setResult(null); setLongInput('');}}>Decrypt</span>
+            </div>
+
+            {/* ECB/CBC Toggle */}
+            <div className="toggle-container">
+              <span className="toggle-label" style={{ color: cipherMode === 'ECB' ? 'var(--primary)' : 'var(--text-muted)' }} onClick={() => {setCipherMode('ECB'); setResult(null);}}>ECB Mode</span>
+              <label className="toggle-switch">
+                <input type="checkbox" checked={cipherMode === 'CBC'} onChange={() => {setCipherMode(cipherMode === 'ECB' ? 'CBC' : 'ECB'); setResult(null);}} />
+                <span className="slider"></span>
+              </label>
+              <span className="toggle-label" style={{ color: cipherMode === 'CBC' ? 'var(--primary)' : 'var(--text-muted)' }} onClick={() => {setCipherMode('CBC'); setResult(null);}}>CBC Mode</span>
+            </div>
+          </div>
+        </div>
+
+        {/* INPUT AREAS */}
+        {cipherMode === 'ECB' ? (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+            <div className="form-group"><label>{action === 'encrypt' ? 'Plaintext A' : 'Ciphertext A'} (Hex)</label><input type="text" className="input-field" value={inputA} onChange={handleHexInput(setInputA)} /></div>
+            <div className="form-group"><label>{action === 'encrypt' ? 'Plaintext B' : 'Ciphertext B'} (Hex)</label><input type="text" className="input-field" value={inputB} onChange={handleHexInput(setInputB)} /></div>
+          </div>
+        ) : (
+          <>
+            <div className="form-group">
+              <label>{action === 'encrypt' ? 'TYPE YOUR MESSAGE (Standard Text)' : 'PASTE YOUR CIPHERTEXT (Hex)'}</label>
+              <textarea className="input-field" rows="3" value={longInput} onChange={action === 'encrypt' ? handleTextInput(setLongInput) : handleHexInput(setLongInput)} />
+            </div>
+            <div className="form-group">
+              <label>Initialization Vector (IV - Hex)</label>
+              <input type="text" className="input-field" value={ivHex} onChange={handleHexInput(setIvHex)} />
+            </div>
+          </>
+        )}
+
+        <div className="form-group">
+          <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            Secret Key (Hex)
+            <span style={{ cursor: 'pointer', color: 'var(--primary)', fontWeight: '600' }} onClick={handleGenerateKey}>⚡ Generate</span>
+          </label>
+          <input type="text" className="input-field" value={keyHex} onChange={handleHexInput(setKeyHex)} />
+        </div>
+
+        <button className="btn-primary" onClick={handleAction} disabled={isLoading}>
+          {isLoading ? '⏳ PROCESSING...' : `EXECUTE RC5 ${action === 'encrypt' ? 'ENCRYPTION' : 'DECRYPTION'}`}
+        </button>
+
+        {/* BASIC RESULTS OUTPUT */}
+        {result && (
+          <div style={{ marginTop: '25px', padding: '20px', backgroundColor: 'var(--bg-body)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)' }}>
+            <h3 style={{ marginTop: '0', color: 'var(--primary)', fontSize: '1rem', display: 'flex', justifyContent: 'space-between' }}>
+              <span>✅ {cipherMode} {action === 'encrypt' ? 'Encryption' : 'Decryption'} Complete</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{result.executionTimeMs} ms</span>
+            </h3>
+            
+            {result.isCBC ? (
+              <div style={{ wordBreak: 'break-all', fontFamily: 'var(--font-mono)', color: 'var(--text-main)', marginTop: '15px' }}>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '5px' }}>{action === 'encrypt' ? 'Encrypted Hex:' : 'Decrypted Message:'}</div>
+                {result.outputData}
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px', fontFamily: 'var(--font-mono)' }}>
+                <div><div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Result A:</div>{action === 'encrypt' ? result.ciphertextA : result.plaintextA}</div>
+                <div><div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Result B:</div>{action === 'encrypt' ? result.ciphertextB : result.plaintextB}</div>
+              </div>
+            )}
+            
+            <button style={{ marginTop: '20px', background: 'transparent', color: 'var(--text-muted)', border: '1px solid var(--border-light)', padding: '8px 15px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }} onClick={downloadReport}>
+              📄 Download Detailed Report
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* NEW DATA TABLE PANEL (Renders only if sArray is present) */}
+      {result && result.sArray && (
+        <div className="glass-panel" style={{ marginTop: '25px', padding: '0', overflow: 'hidden' }}>
+          <div className="panel-header" style={{ padding: '20px', marginBottom: '0', borderBottom: '1px solid var(--border-light)' }}>
+            <div className="panel-title">KEY EXPANSION VISUALIZATION</div>
+          </div>
+          
+          <div style={{ overflowX: 'auto', maxHeight: '350px' }}>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Step</th>
+                  <th>Formula / Operation</th>
+                  <th>Resulting Subkey (Hex)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {result.sArray.map((val, i) => (
+                  <tr key={i} className={i % 2 === 0 ? 'active' : ''}>
+                    <td>{i}</td>
+                    <td>S[{i}] = S[{i > 0 ? i - 1 : 0}] + Q_w</td>
+                    <td style={{ color: 'var(--text-main)' }}>0x{val.toUpperCase()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 
