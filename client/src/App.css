@@ -1,26 +1,27 @@
 /* =========================================
-   RC5 CYBER-DASHBOARD DESIGN SYSTEM
+   RC5 LIGHT DASHBOARD DESIGN SYSTEM
 ========================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
-  /* Deep Cyber Palette */
-  --bg-body: #0d1219;         /* Very dark navy background */
-  --bg-surface: #1a222f;      /* Slightly lighter panel background */
-  --bg-surface-hover: #232d3d;
-  --text-main: #f8fafc;       /* Crisp white */
-  --text-muted: #94a3b8;      /* Slate grey for secondary text */
-  --border-light: #2d3748;    /* Subtle borders */
+  /* Crisp Light Palette */
+  --bg-body: #F1F5F9;         /* Very soft slate for the background */
+  --bg-surface: #FFFFFF;      /* Pure white for panels */
+  --bg-surface-hover: #F8FAFC;
+  --text-main: #0F172A;       /* Dark navy for readable text */
+  --text-muted: #64748B;      /* Slate grey for secondary text */
+  --border-light: #CBD5E1;    /* Visible but clean borders */
   
   /* Accents */
-  --primary: #3b82f6;         /* Bright cyber blue */
-  --primary-hover: #2563eb;
+  --primary: #2563EB;         /* Bright professional blue */
+  --primary-hover: #1D4ED8;
   
   /* Typography & Layout */
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --radius-md: 8px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 /* --- BASE STYLES --- */
@@ -67,13 +68,13 @@ body {
   padding: 8px 16px;
   border-radius: var(--radius-md);
   font-family: var(--font-mono);
-  color: var(--text-muted);
+  color: var(--text-main);
+  box-shadow: var(--shadow-sm);
 }
 
 /* --- THE SIDEBAR LAYOUT --- */
 .main-grid {
   display: grid;
-  /* This creates the layout from your image: a 300px sidebar on the left, main content on the right */
   grid-template-columns: 300px 1fr;
   gap: 25px;
 }
@@ -84,6 +85,7 @@ body {
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   padding: 25px;
+  box-shadow: var(--shadow-sm);
 }
 
 .panel-header {
@@ -114,30 +116,33 @@ body {
 
 label {
   font-size: 0.85rem;
+  font-weight: 600;
   color: var(--text-main);
   margin-bottom: 8px;
 }
 
 .input-field {
-  background-color: var(--bg-body);
+  background-color: var(--bg-surface);
   border: 1px solid var(--border-light);
   color: var(--text-main);
   padding: 12px;
   border-radius: var(--radius-md);
   font-family: var(--font-mono);
   transition: all 0.2s ease;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
 }
 
 .input-field:focus {
   outline: none;
   border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 /* --- BUTTONS --- */
 .btn-primary {
-  background-color: #1e3a5f; /* Darker blue for the execute button */
-  color: var(--text-main);
-  border: 1px solid var(--primary);
+  background-color: var(--primary);
+  color: #FFFFFF;
+  border: none;
   border-radius: var(--radius-md);
   padding: 15px 20px;
   width: 100%;
@@ -145,13 +150,15 @@ label {
   cursor: pointer;
   text-transform: uppercase;
   transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:hover {
-  background-color: var(--primary);
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
 }
 
-/* --- CUSTOM TOGGLE SWITCHES (From the Image) --- */
+/* --- CUSTOM TOGGLE SWITCHES --- */
 .toggle-container {
   display: flex;
   align-items: center;
@@ -183,8 +190,7 @@ label {
   position: absolute;
   cursor: pointer;
   top: 0; left: 0; right: 0; bottom: 0;
-  background-color: var(--bg-body);
-  border: 1px solid var(--border-light);
+  background-color: var(--border-light);
   transition: .4s;
   border-radius: 24px;
 }
@@ -194,21 +200,20 @@ label {
   content: "";
   height: 18px;
   width: 18px;
-  left: 2px;
-  bottom: 2px;
-  background-color: var(--text-muted);
+  left: 3px;
+  bottom: 3px;
+  background-color: #ffffff;
   transition: .4s;
   border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
 input:checked + .slider {
   background-color: var(--primary);
-  border-color: var(--primary);
 }
 
 input:checked + .slider:before {
   transform: translateX(20px);
-  background-color: #fff;
 }
 
 /* --- TABLES --- */
@@ -228,19 +233,19 @@ input:checked + .slider:before {
 .data-table th {
   color: var(--text-muted);
   font-family: var(--font-sans);
-  font-weight: 500;
+  font-weight: 600;
+  background-color: var(--bg-body);
 }
 
 .data-table tr.active {
-  background-color: rgba(59, 130, 246, 0.1); /* Soft blue highlight */
+  background-color: rgba(37, 99, 235, 0.05);
   border-left: 3px solid var(--primary);
 }
 
 /* --- RESPONSIVE FIXES --- */
-/* --- RESPONSIVE FIXES --- */
 @media (max-width: 900px) {
   .main-grid {
-    grid-template-columns: 1fr !important; /* Forces a single column */
+    grid-template-columns: 1fr !important;
     gap: 15px;
   }
   
@@ -248,10 +253,9 @@ input:checked + .slider:before {
     width: 100% !important;
     max-width: 100vw;
     box-sizing: border-box;
-    padding: 15px; /* Slightly smaller padding for mobile */
+    padding: 15px;
   }
 
-  /* Ensures buttons sit side-by-side or stack neatly */
   .canvas-controls {
     flex-direction: row;
     width: 100%;
