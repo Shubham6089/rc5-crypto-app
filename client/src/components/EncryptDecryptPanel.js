@@ -171,15 +171,21 @@ const EncryptDecryptPanel = ({ config, setSimulationData }) => {
             {result.isCBC ? (
               <div style={{ wordBreak: 'break-all', fontFamily: 'var(--font-mono)', color: 'var(--text-main)', marginTop: '15px' }}>
                 <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '5px' }}>{action === 'encrypt' ? 'Encrypted Hex:' : 'Decrypted Message:'}</div>
-                {result.outputData}
+                {/* We capitalize the hex, but leave normal text alone for decryption */}
+                {action === 'encrypt' ? result.outputData.toUpperCase() : result.outputData}
               </div>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px', fontFamily: 'var(--font-mono)' }}>
-                <div><div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Result A:</div>{action === 'encrypt' ? result.ciphertextA : result.plaintextA}</div>
-                <div><div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Result B:</div>{action === 'encrypt' ? result.ciphertextB : result.plaintextB}</div>
+                <div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Result A:</div>
+                  {action === 'encrypt' ? result.ciphertextA.toUpperCase() : result.plaintextA.toUpperCase()}
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Result B:</div>
+                  {action === 'encrypt' ? result.ciphertextB.toUpperCase() : result.plaintextB.toUpperCase()}
+                </div>
               </div>
             )}
-            
             <button style={{ marginTop: '20px', background: 'transparent', color: 'var(--text-muted)', border: '1px solid var(--border-light)', padding: '8px 15px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }} onClick={downloadReport}>
               📄 Download Detailed Report
             </button>
