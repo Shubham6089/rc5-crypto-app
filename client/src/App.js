@@ -4,8 +4,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import ConfigurationForm from './components/ConfigurationForm';
 import EncryptDecryptPanel from './components/EncryptDecryptPanel';
 import CanvasVisualizer from './components/CanvasVisualizer';
-import ErrorBoundary from './components/ErrorBoundary';
-import IndiaClock from './components/IndiaClock'; // ADD THIS IMPORT
+import IndiaClock from './components/IndiaClock'; 
 import './App.css';
 
 const App = () => {
@@ -14,7 +13,6 @@ const App = () => {
 
   return (
     <div className="app-container">
-      {/* Change theme="dark" to theme="light" */}
       <ToastContainer theme="light" position="bottom-right" />
       
       <header className="app-header">
@@ -25,14 +23,22 @@ const App = () => {
       
       <main>
         <div className="main-grid">
-          <section><ConfigurationForm config={rc5Config} setConfig={setRc5Config} /></section>
-          <section><EncryptDecryptPanel config={rc5Config} setSimulationData={setSimulationData} /></section>
+          <section>
+            <ConfigurationForm config={rc5Config} setConfig={setRc5Config} />
+          </section>
+          
+          <section>
+            {/* NEW: setConfig={setRc5Config} is now passed down to allow the QR code to update parameters */}
+            <EncryptDecryptPanel 
+              config={rc5Config} 
+              setConfig={setRc5Config} 
+              setSimulationData={setSimulationData} 
+            />
+          </section>
         </div>
         
         <section>
-          <ErrorBoundary>
-            <CanvasVisualizer simulationData={simulationData} />
-          </ErrorBoundary>
+          <CanvasVisualizer simulationData={simulationData} />
         </section>
       </main>
     </div>
