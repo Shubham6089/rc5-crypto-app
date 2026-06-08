@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { QRCodeCanvas } from 'qrcode.react';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -27,8 +28,38 @@ const EncryptDecryptPanel = ({ config, setSimulationData }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState(null);
 
-  const handleHexInput = (setter) => (e) => setter(e.target.value.replace(/[^0-9A-Fa-f]/g, '').toUpperCase());
-  const handleTextInput = (setter) => (e) => setter(e.target.value); 
+  const [showQR, setShowQR] = useState(false);
+  const [shareUrl, setShareUrl] = useState('');
+
+  // Auto-fill logic for when a user scans the QR code
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('share') === 'true') {
+      setAction('decrypt');
+      setCipherMode(params.get('cipherMode') || 'CBC');
+      setKeyHex(params.get('key') || '');
+      
+      if (params.get('cipherMode') === 'ECB') {
+        setInputA(params.get('cipherA') || '00000000');
+        setInputB(params.get('cipherB') || '00000000');
+      } else {
+        setLongInput(params.get('cipher') || '');
+        setIvHex(params.get('iv') || '0000000000000000');
+      }
+
+      toast.info("📱 Scanned message intercepted! Click Execute to decrypt.");
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
+  const handleHexInput = (setter) => (e) => {
+    setter(e.target.value.replace(/[^0-9A-Fa-f]/g, '').toUpperCase());
+    setShowQR(false); 
+  };
+  const handleTextInput = (setter) => (e) => {
+    setter(e.target.value); 
+    setShowQR(false);
+  };
 
   const handleGenerateKey = async () => {
     try {
@@ -40,6 +71,7 @@ const EncryptDecryptPanel = ({ config, setSimulationData }) => {
 
   const handleAction = async () => {
     setIsLoading(true);
+    setShowQR(false); 
     try {
       if (cipherMode === 'ECB') {
         const endpoint = action === 'encrypt' ? '/api/encrypt' : '/api/decrypt';
@@ -62,20 +94,23 @@ const EncryptDecryptPanel = ({ config, setSimulationData }) => {
         const response = await axios.post(`${API_URL}${endpoint}`, payload);
         
         let finalOutputData = action === 'encrypt' ? response.data.ciphertext : hexToText(response.data.plaintext);
-        
-        // Pass a dummy sArray if CBC mode backend doesn't return one, just so the table doesn't crash 
-        // (Assuming your engine expands the key but maybe doesn't return it in CBC mode. If it does, ignore this comment!)
-        setResult({ 
-          isCBC: true, 
-          outputData: finalOutputData, 
-          executionTimeMs: response.data.executionTimeMs,
-          sArray: response.data.sArray || null 
-        });
+        setResult({ isCBC: true, outputData: finalOutputData, executionTimeMs: response.data.executionTimeMs, sArray: response.data.sArray || null });
         setSimulationData(null); 
         toast.success(`CBC Bulk ${action}ion Complete!`);
       }
     } catch (error) { toast.error(`${action} failed. Check backend connection.`); } 
     finally { setIsLoading(false); }
+  };
+
+  const handleGenerateQR = () => {
+    let url = `${window.location.origin}/?share=true&cipherMode=${cipherMode}&key=${keyHex}`;
+    if (cipherMode === 'ECB') {
+      url += `&cipherA=${result.ciphertextA}&cipherB=${result.ciphertextB}`;
+    } else {
+      url += `&cipher=${result.outputData}&iv=${ivHex}`;
+    }
+    setShareUrl(url);
+    setShowQR(true);
   };
 
   const downloadReport = () => {
@@ -99,37 +134,28 @@ const EncryptDecryptPanel = ({ config, setSimulationData }) => {
   return (
     <>
       <div className="glass-panel">
-        
-        {/* HEADER ROW WITH TOGGLES */}
         <div className="panel-header">
-          <div className="panel-title">
-            <span style={{ color: 'var(--text-muted)' }}>→</span> ENCRYPTION ENGINE
-          </div>
-          
+          <div className="panel-title"><span style={{ color: 'var(--text-muted)' }}>→</span> ENCRYPTION ENGINE</div>
           <div style={{ display: 'flex', gap: '25px', flexWrap: 'wrap' }}>
-            {/* Encrypt/Decrypt Toggle */}
             <div className="toggle-container">
-              <span className="toggle-label" style={{ color: action === 'encrypt' ? 'var(--primary)' : 'var(--text-muted)' }} onClick={() => {setAction('encrypt'); setResult(null); setLongInput('');}}>Encrypt</span>
+              <span className="toggle-label" style={{ color: action === 'encrypt' ? 'var(--primary)' : 'var(--text-muted)' }} onClick={() => {setAction('encrypt'); setResult(null); setLongInput(''); setShowQR(false);}}>Encrypt</span>
               <label className="toggle-switch">
-                <input type="checkbox" checked={action === 'decrypt'} onChange={() => {setAction(action === 'encrypt' ? 'decrypt' : 'encrypt'); setResult(null); setLongInput('');}} />
+                <input type="checkbox" checked={action === 'decrypt'} onChange={() => {setAction(action === 'encrypt' ? 'decrypt' : 'encrypt'); setResult(null); setLongInput(''); setShowQR(false);}} />
                 <span className="slider"></span>
               </label>
-              <span className="toggle-label" style={{ color: action === 'decrypt' ? 'var(--primary)' : 'var(--text-muted)' }} onClick={() => {setAction('decrypt'); setResult(null); setLongInput('');}}>Decrypt</span>
+              <span className="toggle-label" style={{ color: action === 'decrypt' ? 'var(--primary)' : 'var(--text-muted)' }} onClick={() => {setAction('decrypt'); setResult(null); setLongInput(''); setShowQR(false);}}>Decrypt</span>
             </div>
-
-            {/* ECB/CBC Toggle */}
             <div className="toggle-container">
-              <span className="toggle-label" style={{ color: cipherMode === 'ECB' ? 'var(--primary)' : 'var(--text-muted)' }} onClick={() => {setCipherMode('ECB'); setResult(null);}}>ECB Mode</span>
+              <span className="toggle-label" style={{ color: cipherMode === 'ECB' ? 'var(--primary)' : 'var(--text-muted)' }} onClick={() => {setCipherMode('ECB'); setResult(null); setShowQR(false);}}>ECB Mode</span>
               <label className="toggle-switch">
-                <input type="checkbox" checked={cipherMode === 'CBC'} onChange={() => {setCipherMode(cipherMode === 'ECB' ? 'CBC' : 'ECB'); setResult(null);}} />
+                <input type="checkbox" checked={cipherMode === 'CBC'} onChange={() => {setCipherMode(cipherMode === 'ECB' ? 'CBC' : 'ECB'); setResult(null); setShowQR(false);}} />
                 <span className="slider"></span>
               </label>
-              <span className="toggle-label" style={{ color: cipherMode === 'CBC' ? 'var(--primary)' : 'var(--text-muted)' }} onClick={() => {setCipherMode('CBC'); setResult(null);}}>CBC Mode</span>
+              <span className="toggle-label" style={{ color: cipherMode === 'CBC' ? 'var(--primary)' : 'var(--text-muted)' }} onClick={() => {setCipherMode('CBC'); setResult(null); setShowQR(false);}}>CBC Mode</span>
             </div>
           </div>
         </div>
 
-        {/* INPUT AREAS */}
         {cipherMode === 'ECB' ? (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
             <div className="form-group"><label>{action === 'encrypt' ? 'Plaintext A' : 'Ciphertext A'} (Hex)</label><input type="text" className="input-field" value={inputA} onChange={handleHexInput(setInputA)} /></div>
@@ -141,10 +167,7 @@ const EncryptDecryptPanel = ({ config, setSimulationData }) => {
               <label>{action === 'encrypt' ? 'TYPE YOUR MESSAGE (Standard Text)' : 'PASTE YOUR CIPHERTEXT (Hex)'}</label>
               <textarea className="input-field" rows="3" value={longInput} onChange={action === 'encrypt' ? handleTextInput(setLongInput) : handleHexInput(setLongInput)} />
             </div>
-            <div className="form-group">
-              <label>Initialization Vector (IV - Hex)</label>
-              <input type="text" className="input-field" value={ivHex} onChange={handleHexInput(setIvHex)} />
-            </div>
+            <div className="form-group"><label>Initialization Vector (IV - Hex)</label><input type="text" className="input-field" value={ivHex} onChange={handleHexInput(setIvHex)} /></div>
           </>
         )}
 
@@ -160,7 +183,6 @@ const EncryptDecryptPanel = ({ config, setSimulationData }) => {
           {isLoading ? '⏳ PROCESSING...' : `EXECUTE RC5 ${action === 'encrypt' ? 'ENCRYPTION' : 'DECRYPTION'}`}
         </button>
 
-        {/* BASIC RESULTS OUTPUT */}
         {result && (
           <div style={{ marginTop: '25px', padding: '20px', backgroundColor: 'var(--bg-body)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)' }}>
             <h3 style={{ marginTop: '0', color: 'var(--primary)', fontSize: '1rem', display: 'flex', justifyContent: 'space-between' }}>
@@ -171,29 +193,40 @@ const EncryptDecryptPanel = ({ config, setSimulationData }) => {
             {result.isCBC ? (
               <div style={{ wordBreak: 'break-all', fontFamily: 'var(--font-mono)', color: 'var(--text-main)', marginTop: '15px' }}>
                 <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '5px' }}>{action === 'encrypt' ? 'Encrypted Hex:' : 'Decrypted Message:'}</div>
-                {/* We capitalize the hex, but leave normal text alone for decryption */}
                 {action === 'encrypt' ? result.outputData.toUpperCase() : result.outputData}
               </div>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px', fontFamily: 'var(--font-mono)' }}>
-                <div>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Result A:</div>
-                  {action === 'encrypt' ? result.ciphertextA.toUpperCase() : result.plaintextA.toUpperCase()}
-                </div>
-                <div>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Result B:</div>
-                  {action === 'encrypt' ? result.ciphertextB.toUpperCase() : result.plaintextB.toUpperCase()}
+                <div><div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Result A:</div>{action === 'encrypt' ? result.ciphertextA.toUpperCase() : result.plaintextA.toUpperCase()}</div>
+                <div><div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Result B:</div>{action === 'encrypt' ? result.ciphertextB.toUpperCase() : result.plaintextB.toUpperCase()}</div>
+              </div>
+            )}
+            
+            <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+              <button style={{ flex: 1, background: 'transparent', color: 'var(--text-muted)', border: '1px solid var(--border-light)', padding: '8px 15px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }} onClick={downloadReport}>
+                📄 Download Report
+              </button>
+              
+              {action === 'encrypt' && (
+                <button style={{ flex: 1, background: 'transparent', color: 'var(--primary)', border: '1px solid var(--primary)', padding: '8px 15px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '600' }} onClick={handleGenerateQR}>
+                  📱 Share via QR
+                </button>
+              )}
+            </div>
+
+            {showQR && (
+              <div style={{ marginTop: '20px', textAlign: 'center', padding: '20px', backgroundColor: 'var(--bg-surface)', border: '2px dashed var(--primary)', borderRadius: 'var(--radius-md)' }}>
+                <p style={{ fontWeight: '600', color: 'var(--text-main)', marginBottom: '15px' }}>Scan with your phone camera to decrypt!</p>
+                <div style={{ background: 'white', padding: '15px', display: 'inline-block', borderRadius: '8px', boxShadow: 'var(--shadow-sm)' }}>
+                  <QRCodeCanvas value={shareUrl} size={200} />
                 </div>
               </div>
             )}
-            <button style={{ marginTop: '20px', background: 'transparent', color: 'var(--text-muted)', border: '1px solid var(--border-light)', padding: '8px 15px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }} onClick={downloadReport}>
-              📄 Download Detailed Report
-            </button>
           </div>
         )}
       </div>
 
-      {/* NEW DATA TABLE PANEL (Renders only if sArray is present) */}
+      {/* KEEPING THE DATA TABLE INCLUDED PROPERLY */}
       {result && result.sArray && (
         <div className="glass-panel" style={{ marginTop: '25px', padding: '0', overflow: 'hidden' }}>
           <div className="panel-header" style={{ padding: '20px', marginBottom: '0', borderBottom: '1px solid var(--border-light)' }}>
